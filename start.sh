@@ -55,7 +55,7 @@ while true; do
                         echo -e "${YELLOW}Select obfuscation chain:${NC}"
                         echo -e "${GREEN}1)${NC} Basic (unicode + base64)"
                         echo -e "${GREEN}2)${NC} Stealth (unicode + base64 + xor + junk) [DEFAULT]"
-                        echo -e "${GREEN}3)${NC} Full (all layers + OS bypass)"
+                        echo -e "${GREEN}3)${NC} Full (OS-specific bypasses included)"
                         echo ""
                         echo -ne "${BLUE}Enter chain [1-3]: ${NC}"
                         read chain_choice

