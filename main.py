@@ -59,34 +59,62 @@ class PayloadFramework:
         
         return base_chain
 
-    def process_payload(self, payload, chain):
+    def process_payload(self, payload, chain, verbose=False):
         """Apply obfuscation chain to payload"""
         result = payload
         applied_layers = []
         
-        for layer in chain:
+        if verbose:
+            print(f"\n🔄 Starting obfuscation process...")
+            print(f"📝 Original payload: '{payload}'")
+            print(f"🔗 Chain to apply: {' → '.join(chain)}")
+            print("\n" + "="*50)
+        
+        for i, layer in enumerate(chain, 1):
             if layer in self.components:
                 try:
+                    old_result = result
                     result = self.components[layer].encode(result)
                     applied_layers.append(layer)
+                    
+                    if verbose:
+                        print(f"\n[{i}/{len(chain)}] 🔧 Applying {layer.upper()} layer...")
+                        print(f"📥 Input:  '{old_result[:50]}{'...' if len(old_result) > 50 else ''}'")
+                        print(f"📤 Output: '{result[:50]}{'...' if len(result) > 50 else ''}'")
+                        print(f"✅ {layer.capitalize()} encoding applied successfully")
+                        
                 except Exception as e:
-                    print(f"⚠️  Layer {layer} failed: {e}")
+                    if verbose:
+                        print(f"❌ Layer {layer} failed: {e}")
                     continue
+        
+        if verbose:
+            print("\n" + "="*50)
+            print(f"🏁 Obfuscation complete!")
+            print(f"📊 Applied {len(applied_layers)} layers: {' → '.join(applied_layers)}")
+            print(f"📏 Original length: {len(payload)} → Final length: {len(result)}")
         
         return result, applied_layers
 
-    def generate_variants(self, payload, chain, count):
+    def generate_variants(self, payload, chain, count, verbose=False):
         """Generate multiple obfuscated variants"""
         variants = []
         
-        print(f"🔄 Generating {count} variants...")
+        print(f"\n🔄 Generating {count} variants...")
+        if verbose:
+            print("\n" + "="*60)
+        
         for i in range(count):
+            if verbose:
+                print(f"\n🎲 VARIANT {i+1}:")
+                print("-" * 30)
+            
             # Add randomization to components
             for comp in self.components.values():
                 if hasattr(comp, 'randomize'):
                     comp.randomize()
             
-            obfuscated, layers = self.process_payload(payload, chain)
+            obfuscated, layers = self.process_payload(payload, chain, verbose)
             evasion_score = self.tester.test_payload(obfuscated)
             
             variants.append({
@@ -98,7 +126,12 @@ class PayloadFramework:
             })
             
             # Progress indicator
-            print(f"Variant {i+1}: {evasion_score}% evasion {variants[-1]['status']}")
+            status_msg = f"Variant {i+1}: {evasion_score}% evasion {variants[-1]['status']}"
+            if verbose:
+                print(f"\n📊 {status_msg}")
+                print(f"🎯 Final payload preview: '{obfuscated[:100]}{'...' if len(obfuscated) > 100 else ''}'")
+            else:
+                print(status_msg)
         
         return variants
 
@@ -114,10 +147,12 @@ Examples:
         """
     )
     
-    parser.add_argument('--payload', required=True, help='Payload to obfuscate')
+    parser.add_argument('--payload', help='Payload to obfuscate')
+    parser.add_argument('--file', help='Path to payload file')
     parser.add_argument('--chain', choices=['basic', 'stealth', 'full'], default='stealth', help='Obfuscation chain')
     parser.add_argument('--target', choices=['windows', 'linux', 'both'], default='both', help='Target OS')
     parser.add_argument('--variants', type=int, default=5, help='Number of variants to generate')
+    parser.add_argument('--verbose', action='store_true', help='Show detailed processing steps')
     parser.add_argument('--test', action='store_true', help='Test against detection engines')
     parser.add_argument('--test-av', action='store_true', help='Test against AV signatures')
     parser.add_argument('--vector', choices=['phishing', 'web', 'network'], help='Attack vector')
@@ -125,18 +160,34 @@ Examples:
     
     args = parser.parse_args()
     
+    # Validate arguments
+    if not args.payload and not args.file:
+        parser.error('Either --payload or --file must be provided')
+    
+    # Load payload
+    if args.file:
+        try:
+            with open(args.file, 'r') as f:
+                payload = f.read().strip()
+            print(f"Loading payload from: {args.file}")
+        except FileNotFoundError:
+            print(f"❌ Error: File {args.file} not found")
+            sys.exit(1)
+    else:
+        payload = args.payload
+    
     framework = PayloadFramework()
     
     print("🎯 Advanced Payload Obfuscation Framework")
     print("=" * 50)
-    print(f"Target: {args.payload}")
+    print(f"Original Command: {payload}")
     
     # Build appropriate chain
     chain = framework.build_chain(args.chain, args.target)
     print(f"🔗 Chain: {' → '.join(chain)}")
     
     # Generate variants
-    variants = framework.generate_variants(args.payload, chain, args.variants)
+    variants = framework.generate_variants(payload, chain, args.variants, args.verbose)
     
     # Find best variant
     best = max(variants, key=lambda x: x['evasion_score'])

